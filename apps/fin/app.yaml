@@ -55,7 +55,7 @@ spec:
     enabled: true
     mode: delegated
     timeout: 45m
-  notes: 'First visit: register your passkey (or restore a fog-backup/1 artifact from a previous instance), then set FIN_OPEN_REGISTRATION=false in Config → Environment. Passkeys are pinned to FIN_WEBAUTHN_RP_ID — pick the hostname once and keep it; a restore under a different RP ID invalidates every passkey (preflight makes that explicit). Add the deploy key and webhook (Overview tab) to the Gitea repo for push-to-deploy.'
+  notes: 'First visit: register your passkey (or restore a fog-backup/1 artifact from a previous instance), then set FIN_OPEN_REGISTRATION=false in Config → Environment. Passkeys are pinned to FIN_WEBAUTHN_RP_ID — pick the hostname once and keep it; a restore under a different RP ID invalidates every passkey (preflight makes that explicit). Fin installs from its public repository over https; to deploy your own fork instead, point Config → Source at its SSH URL and add the deploy key and webhook to it.'
 options:
   - key: repo
     label: Git repository
@@ -86,6 +86,8 @@ options:
 formerly:
   - manor
 firstParty: fin
+publicRepo: https://github.com/fogapp/fin.git
+projectUrl: https://github.com/fogapp/fin
 about: |-
   Fin is a household's financial life in one place. It pulls bank, card, brokerage, crypto, property, and equity-compensation data into a single normalised ledger, keeps it current on its own, and gives you the views a good personal finance app would — cashflow, budget, subscriptions, net worth, portfolio performance, taxes.
 
@@ -98,8 +100,8 @@ highlights:
   - Recurring charges and transfers detected from cadence, not tagging
   - Passkey sign-in, MCP access for agents, webhooks
 logo: tile.svg
-developer: Built from your own repository
-license: Private
+developer: fogapp
+license: AGPL-3.0
 footprint:
   memory: 734003200
   memoryPeak: 1572864000
