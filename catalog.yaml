@@ -1,32 +1,8 @@
 format: fog-catalog/1
 name: fog-apps
 title: Fog apps
-description: 'The household apps built for fog: Fin, Hub, Stream, Office and the rest, built from their own repositories.'
+description: 'Apps built for fog and published for anyone to run: Fin, a household finance hub.'
 featured:
-  - hub
   - fin
-  - office
-  - feed
-  - hook
-  - stream
-  - once
-  - hud
-  - lucid
-  - newtab
-  - signet
-  - fit
 order:
-  - hub
   - fin
-  - office
-  - feed
-  - hook
-  - stream
-  - once
-  - hud
-  - lucid
-  - newtab
-  - signet
-  - fit
-  - fit-collector
-  - think-fleet

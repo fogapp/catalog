@@ -1,8 +1,11 @@
 # fog-apps
 
-The apps built for [fog](https://github.com/fogapp/fog): Fin, Hub, Office,
-Stream, Feed, Hook, Once, HUD, Lucid, Newtab, Signet, Fit and think fleet.
-Every fog reads this catalog out of the box, and its apps install directly.
+The apps built for [fog](https://github.com/fogapp/fog) that are published
+for anyone to run. For now that is Fin. Every fog reads this catalog out of
+the box, and its apps install directly.
+
+Apps built for fog that aren't published yet live in a private catalog
+(`beta-catalog`), which a fog reads only if its operator adds it.
 
 This is a `fog-catalog/1` catalog. The format is fog's
 `docs/catalog-contract.md`.
@@ -29,7 +32,7 @@ entry here is a copy of its spec, and that copy is what a one-click install
 deploys. When the two drift, a store install quietly differs from the app
 its author ships. fog's tests check every entry against its manifest field
 by field. They run when this repository, `fog-catalog`, and the app
-repositories are checked out beside fog:
+repositories are checked out beside fog (`beta-catalog` too, if present):
 
 ```sh
 cd ../fog && go test ./internal/catalog
