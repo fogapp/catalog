@@ -1,0 +1,124 @@
+id: fit
+title: Fit
+description: A household's health record — Whoop, Withings, Apple Health, medications and supplements, on a sealed network that never leaves the house.
+category: Personal cloud
+icon: '🩺'
+spec:
+  source:
+    type: git
+    branch: main
+    dockerfile: Dockerfile
+    buildArgs:
+      GIT_REV: '{{commit}}'
+  env:
+    FIT_HOST: '{{fqdn}}'
+    GIT_SHA: '{{commit}}'
+    JOB_CONCURRENCY: "1"
+    LUCID_URL: http://lucid
+    NTFY_TOPIC: fit
+    NTFY_URL: http://ntfy
+    RAILS_ENV: production
+    RAILS_MAX_THREADS: "8"
+    TIME_ZONE: America/Los_Angeles
+  secrets:
+    - SECRET_KEY_BASE
+    - AR_ENCRYPTION_PRIMARY_KEY
+    - AR_ENCRYPTION_DETERMINISTIC_KEY
+    - AR_ENCRYPTION_KEY_DERIVATION_SALT
+  volumes:
+    - name: storage
+      mount: /rails/storage
+      owner: 1000:1000
+  routes:
+    - port: 80
+      lanOnly: true
+  health:
+    path: /up
+  processes:
+    - name: worker
+      command:
+        - ./bin/jobs
+  release:
+    - ./bin/rails
+    - fog:release
+  deployStrategy: swap
+  needs:
+    postgres:
+      databases:
+        - fit_production
+        - fit_production_cache
+        - fit_production_queue
+      extensions:
+        - pg_trgm
+        - citext
+        - pgcrypto
+      inject:
+        DATABASE_HOST: host
+        DATABASE_NAME: dbname
+        DATABASE_PASSWORD: password
+        DATABASE_PORT: port
+        DATABASE_USER: user
+  updatePolicy: auto
+  backup:
+    enabled: true
+    beforeUpdate: true
+    mode: delegated
+    timeout: 30m
+  notes: 'Don''t add real data until the seal is proven: run the steps in fog''s docs/sealed-network.md, "Verifying on a real server", then check that Fit''s Sources page says Sealed. Lucid installs as a sealed peer; set sealedPeer on ntfy (Config) if you want Fit to reach it, and on a Lucid installed before this release. Without it an address doesn''t resolve from the sealed network. Sign in with your passkey: the first person in is Fit''s admin. Connect fit-collector and Lucid on the Integrations tab, and pin model names in Settings › Household models to turn on briefs and lab reading. Add the deploy key and webhook (Overview tab) to the Gitea repo for push-to-deploy.'
+  memoryLimit: 1g
+  reach:
+    - ntfy
+  wants:
+    - offer: fit-collector/pull
+  network: sealed
+options:
+  - key: repo
+    label: Git repository
+    target: repo
+    required: true
+  - key: SECRET_KEY_BASE
+    label: SECRET_KEY_BASE
+    hint: Signs cookies and ActiveStorage URLs; unique per instance.
+    target: secret:SECRET_KEY_BASE
+    required: true
+    generate: hex128
+  - key: AR_ENCRYPTION_PRIMARY_KEY
+    label: AR_ENCRYPTION_PRIMARY_KEY
+    hint: Encrypts sensitive database columns from day one.
+    target: secret:AR_ENCRYPTION_PRIMARY_KEY
+    required: true
+    generate: alnum32
+  - key: AR_ENCRYPTION_DETERMINISTIC_KEY
+    label: AR_ENCRYPTION_DETERMINISTIC_KEY
+    target: secret:AR_ENCRYPTION_DETERMINISTIC_KEY
+    required: true
+    generate: alnum32
+  - key: AR_ENCRYPTION_KEY_DERIVATION_SALT
+    label: AR_ENCRYPTION_KEY_DERIVATION_SALT
+    target: secret:AR_ENCRYPTION_KEY_DERIVATION_SALT
+    required: true
+    generate: alnum32
+companions:
+  - id: fit-collector
+    blurb: Fetches Whoop and Withings data outside the seal — Fit pulls from it, and it can't read Fit.
+    default: true
+firstParty: fit
+about: |-
+  Fit is a household's health record on its own hardware. It pulls in Whoop, Withings and Apple Health, tracks medication and supplement regimens, and keeps every number traceable to the payload that produced it.
+
+  Health data stays in the house. Fit runs on a sealed network with no route out of the machine, answers on the home network only, and offers nothing to other apps. Morning briefs and lab reading use the household's own models or wait.
+highlights:
+  - Whoop and Withings through a separate collector that can't read Fit
+  - Apple Health and one-tap dose logging from the iPhone app
+  - Every number traces back to its raw payload, kept forever
+  - 'Row-level security per person: admin grants no access to anyone''s health data'
+  - Briefs and lab reading on household models, with no cloud fallback
+logo: tile.svg
+developer: Built from your own repository
+license: Private
+footprint:
+  memory: 524288000
+  memoryPeak: 1048576000
+  cpu: light
+  disk: 1258291200
+  diskGrows: with vendor history and lab documents — raw payloads are kept forever

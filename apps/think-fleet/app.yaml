@@ -1,0 +1,81 @@
+id: think-fleet
+title: think fleet
+description: One record of every model each Mac in the house has tried, run and benchmarked, a library of model files downloaded once, and the house's local AI on one endpoint.
+category: Personal cloud
+icon: '🧠'
+spec:
+  source:
+    type: git
+    branch: main
+    dockerfile: cmd/think-fleet/Dockerfile
+    buildArgs:
+      GIT_REV: '{{commit}}'
+  env:
+    THINK_FLEET_API: :8081
+    THINK_FLEET_FILES: /library
+    THINK_FLEET_QUIET: 01:00-06:00
+    TZ: America/Los_Angeles
+  secrets:
+    - THINK_FLEET_KEY
+  volumes:
+    - name: library
+      mount: /library
+      files: Content/AI models
+      owner: 1000:1000
+  routes:
+    - port: 8080
+      auth: true
+      lanOnly: true
+    - host: think-fleet-api
+      port: 8081
+      noBuffer: true
+      lanOnly: true
+  health:
+    path: /healthz
+  deployStrategy: swap
+  needs:
+    postgres:
+      databases:
+        - think_fleet
+      inject:
+        DATABASE_HOST: host
+        DATABASE_NAME: dbname
+        DATABASE_PASSWORD: password
+        DATABASE_PORT: port
+        DATABASE_USER: user
+  updatePolicy: auto
+  backup:
+    enabled: true
+  notes: 'On each Mac with think, run `think fleet join https://think-fleet-api.<domain>` and approve the code with your passkey. The library keeps model files in Content/AI models: move Content to a NAS (Settings › Storage › Drive) for room, or set THINK_FLEET_BUDGET_GB to cap it. Add the deploy key and webhook (Overview tab) to the Gitea repo for push-to-deploy.'
+  memoryLimit: 512m
+options:
+  - key: repo
+    label: Git repository
+    target: repo
+    required: true
+  - key: THINK_FLEET_KEY
+    label: THINK_FLEET_KEY
+    hint: Signs the tickets Macs copy files with; changing it makes Macs join again.
+    target: secret:THINK_FLEET_KEY
+    required: true
+    generate: hex64
+firstParty: think
+about: |-
+  think fleet is where the household's Macs running think meet. Each Mac keeps its own record of the models it has tried, run, benchmarked and judged; the hub holds all of them, so you can compare the same model across machines and see what another Mac made of a model before you download it.
+
+  Model files are kept once for the house, on a NAS if you like, and copied to a Mac over the LAN instead of downloaded again. Overnight, idle Macs measure what the others haven't, and one endpoint answers for the whole house from whichever Mac has the model warm. Prompts people send never reach the hub.
+highlights:
+  - One record of every model each Mac has tried, run and scored
+  - The same model compared across machines, with every setting that differs called out
+  - Model files downloaded once for the house and copied over the LAN, checked by hash
+  - Overnight benchmarks on idle Macs, and speed predictions for models nobody has downloaded
+  - One OpenAI-compatible endpoint for the house, routed to the Mac best placed to answer
+logo: tile.svg
+developer: Built from your own repository
+license: Private
+footprint:
+  memory: 62914560
+  memoryPeak: 268435456
+  cpu: light
+  disk: 41943040
+  diskGrows: with the household's model files, in Content

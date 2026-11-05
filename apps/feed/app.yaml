@@ -1,0 +1,130 @@
+id: feed
+title: Feed
+description: Curation engine — follow-only ingestion into a permanent archive, ranked reading, multi-format egress.
+category: Media automation
+icon: '📡'
+spec:
+  source:
+    type: git
+    branch: main
+    buildArgs:
+      GIT_REV: '{{commit}}'
+  env:
+    FEED_HOST: '{{fqdn}}'
+    GIT_SHA: '{{commit}}'
+    JOB_CONCURRENCY: "1"
+    MEDIA_ROOT: /data/media
+    NTFY_TOPIC: feed
+    NTFY_URL: http://ntfy
+    RAILS_ENV: production
+    RAILS_MAX_THREADS: "8"
+    TIME_ZONE: America/Los_Angeles
+  secrets:
+    - SECRET_KEY_BASE
+    - AR_ENCRYPTION_PRIMARY_KEY
+    - AR_ENCRYPTION_DETERMINISTIC_KEY
+    - AR_ENCRYPTION_KEY_DERIVATION_SALT
+  volumes:
+    - name: storage
+      mount: /rails/storage
+      owner: 1000:1000
+    - name: media
+      mount: /data/media
+      host: /mnt/media/feed
+  routes:
+    - port: 80
+      noBuffer: true
+  health:
+    path: /up
+  processes:
+    - name: worker
+      command:
+        - ./bin/jobs
+  release:
+    - ./bin/rails
+    - fog:release
+  deployStrategy: swap
+  needs:
+    postgres:
+      databases:
+        - feed_production
+        - feed_production_cache
+        - feed_production_queue
+      extensions:
+        - pg_trgm
+        - citext
+        - pgcrypto
+        - vector
+      inject:
+        DATABASE_HOST: host
+        DATABASE_NAME: dbname
+        DATABASE_PASSWORD: password
+        DATABASE_PORT: port
+        DATABASE_USER: user
+  updatePolicy: auto
+  backup:
+    enabled: true
+    mode: delegated
+    timeout: 45m
+  notes: 'First visit: complete the setup wizard to create the household and admin account — or restore a fog-backup/1 artifact from a previous instance. Add the deploy key and webhook (Overview tab) to the Gitea repo for push-to-deploy. The media archive lives on a host path and is deliberately outside the backup artifact — back it up separately (restic/rclone); after a restore the media integrity sweep re-fetches anything the archive tree is missing.'
+  memoryLimit: 4g
+  reach:
+    - ntfy
+options:
+  - key: repo
+    label: Git repository
+    target: repo
+    required: true
+  - key: media
+    label: Media archive
+    hint: TB-scale archive storage; excluded from fog backups.
+    target: volume:media
+    required: false
+    default: /mnt/media/feed
+  - key: SECRET_KEY_BASE
+    label: SECRET_KEY_BASE
+    hint: Signs cookies and ActiveStorage URLs; unique per instance.
+    target: secret:SECRET_KEY_BASE
+    required: true
+    generate: hex128
+  - key: AR_ENCRYPTION_PRIMARY_KEY
+    label: AR_ENCRYPTION_PRIMARY_KEY
+    hint: Encrypts sensitive database columns from day one.
+    target: secret:AR_ENCRYPTION_PRIMARY_KEY
+    required: true
+    generate: alnum32
+  - key: AR_ENCRYPTION_DETERMINISTIC_KEY
+    label: AR_ENCRYPTION_DETERMINISTIC_KEY
+    target: secret:AR_ENCRYPTION_DETERMINISTIC_KEY
+    required: true
+    generate: alnum32
+  - key: AR_ENCRYPTION_KEY_DERIVATION_SALT
+    label: AR_ENCRYPTION_KEY_DERIVATION_SALT
+    target: secret:AR_ENCRYPTION_KEY_DERIVATION_SALT
+    required: true
+    generate: alnum32
+companions:
+  - id: ntfy
+    blurb: Push notifications — Feed publishes ingest and health alerts to ntfy.
+firstParty: feed
+about: |-
+  Feed is a curation engine. It pulls everything from the people you explicitly follow — Reddit, YouTube, Bluesky, Mastodon, Twitch, podcasts, blogs, newsletters — into a permanent local archive, runs your algorithm over it, and serves the result out through whatever you like to read in.
+
+  No discovery, no suggestions, no feed you didn't ask for. Feeds that end, an algorithm you can diff like code, and a per-item answer to “why am I seeing this”.
+highlights:
+  - Follow-only, full-fidelity, archival-grade ingestion
+  - Rules, scoring, topics, transcripts, and dedup you can read and change
+  - 'Google Reader-compatible sync: NetNewsWire, Reeder, and friends just work'
+  - RSS, Atom, podcast feeds, ActivityPub actors, and MCP for agents
+  - Peer Feed instances are first-class sources
+  - Alerts through ntfy
+logo: tile.svg
+developer: Built from your own repository
+license: Private
+footprint:
+  memory: 1048576000
+  memoryPeak: 3145728000
+  cpu: heavy
+  cpuWhen: ingesting and transcribing
+  disk: 1258291200
+  diskGrows: with the archive — media is kept forever

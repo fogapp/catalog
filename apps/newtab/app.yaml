@@ -1,0 +1,59 @@
+id: newtab
+title: Newtab
+description: The household's start page — every app one keystroke away, with live content from them, painted before the tab finishes opening.
+category: Utilities
+icon: '🧭'
+spec:
+  source:
+    type: git
+    branch: main
+    dockerfile: Dockerfile
+    buildArgs:
+      GIT_REV: '{{commit}}'
+  env:
+    NEWTAB_HOST: '{{fqdn}}'
+  volumes:
+    - name: state
+      mount: /state
+      owner: 1000:1000
+    - name: config
+      mount: /config
+      owner: 1000:1000
+  routes:
+    - port: 8080
+      noBuffer: true
+      auth: true
+  health:
+    path: /up
+  deployStrategy: swap
+  updatePolicy: auto
+  backup:
+    enabled: true
+    beforeUpdate: true
+    mode: delegated
+  notes: 'Needs no setup: open it and every app fog runs is already there. Bookmarks, pinned apps and the palette are in newtab.yaml at Apps/Newtab/config in Files, or use the page''s own editor. With Lucid installed, connect it on the Integrations tab: one connection sends page timings to Lucid and feeds its widgets. Add the deploy key and webhook (Overview tab) to the Gitea repo for push-to-deploy.'
+  memoryLimit: 128m
+options:
+  - key: repo
+    label: Git repository
+    target: repo
+    required: true
+firstParty: newtab
+about: |-
+  Newtab is the household's start page: every app on this server one keystroke away, with live content from them — what's playing on Stream, what Feed ranked this morning, what fog's Inbox is waiting on — in a page that paints before the browser has finished opening the tab.
+
+  It knows every app fog runs without being told. A repeat visit paints from the device with no requests, and stale content is shown, marked, and replaced in place rather than waited for.
+highlights:
+  - Every fog app, with no configuration
+  - Live widgets from the household's apps
+  - Paints from cache with zero network on a repeat visit
+  - An in-page editor on a 12-column grid, saved to newtab.yaml
+  - A browser extension that makes it the new-tab page
+logo: tile.svg
+developer: Built from your own repository
+license: Private
+footprint:
+  memory: 31457280
+  memoryPeak: 134217728
+  cpu: light
+  disk: 104857600
