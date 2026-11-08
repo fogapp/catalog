@@ -40,3 +40,18 @@ cd ../fog && go test ./internal/catalog
 
 Change the manifest and the entry together, then push this repository.
 Fogs pick it up at their next fetch.
+
+## License
+
+Copyright (c) 2026 Matthew Werner
+
+The catalog (`catalog.yaml`, each app's `app.yaml`, and this README) is under
+the MIT License; see [LICENSE](LICENSE). Copy it, adapt it, and publish
+catalogs of your own from it.
+
+The license doesn't cover the apps' tiles and names. Fin, Stream and Glass
+are trademarks under [TRADEMARKS.md](TRADEMARKS.md), and each app is under its
+own license, which its entry names (`license:`).
+
+Issues are welcome; pull requests aren't accepted for now. See
+[CONTRIBUTING.md](CONTRIBUTING.md).
