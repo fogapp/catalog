@@ -19,11 +19,20 @@ apps/<id>/tile.svg    its tile
 ## Where the apps are built from
 
 Each entry is built from its own repository (`firstParty: <repo>`). The
-clone URL comes from the fog's settings, under Settings › App store ›
+clone URL comes from the app store's settings (the cog on the store's
+search row; on older fogs, Settings › Preferences › App store), under
 First-party app source: a base such as `ssh://git@git.example.com/you/`,
 plus `<repo>.git`, or a per-app override. An entry's `publicRepo`, once an
 app is published, lets a fog with no base install it too. A fog with
 neither leaves the app out of its store.
+
+## Certified
+
+An app that builds from its own repository this way is one built to run on
+top of fog, and a fog's store says so: a blue checkmark beside its name, a
+place under the **Certified** filter, and a spot in the featured row.
+Nothing here asks for it. Fog works it out from `firstParty`, and refuses
+an entry that sets `certified` itself.
 
 ## Keeping an entry in step with its app
 
